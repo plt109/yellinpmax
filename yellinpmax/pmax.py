@@ -5,23 +5,24 @@ import pandas as pd
 import pickle
 
 
+#### Functions to handle input spectrum
 def get_cumulative(energies, rates, roi, num_cumulative_steps=1000):
-    '''Returns unnormalised cumulative function, f_cdf, such that 
+    """Returns unnormalised cumulative function, f_cdf, such that 
     f_cdf(b)-f_cdf(a) gives the integral of `energies` between [a,b].
     
     Arguments:
-    energies: Energies at which the spectrum is defined, eg.: keV.
-    rates: Rates at `energies` in units of events/keV. Can be events/(keV tonne year) as well, then scaling by
+    energies (np.ndarray): Energies at which the spectrum is defined, eg.: keV.
+    rates (np.ndarray): Rates at `energies` in units of events/keV. Can be events/(keV tonne year) as well, then scaling by
     exposure has to be done outside this function.
-    roi: 2-element array or tuple indicating start and end point of region-of-interest. Same units as `energies`.
+    roi (np.ndarray, list, tuple): 2-element array or tuple indicating start
+                                   and end point of region-of-interest. Same units as `energies`.
     
     Keyword arguments:
-    num_cumulative_steps: Number of points used to compute cumulative function
+    num_cumulative_steps (integer): Number of points used to compute cumulative function
     
     Returns:
-    f_cdf: scipy.interpolate.interpolate.interp1d. Interpolated cumulative function of input spectrum
-    '''
-    
+    f_cumulative (scipy.interpolate.interpolate.interp1d): Interpolated cumulative function of input spectrum
+    """
     # Interpolating spectrum, [events/keV]
     f = spi.interp1d(energies, rates,
                      kind='linear',
@@ -46,24 +47,25 @@ def get_cumulative(energies, rates, roi, num_cumulative_steps=1000):
     f_cumulative = spi.interp1d(test_x, test_cumsum_y,
                          kind='linear',
                          bounds_error=False, fill_value=(0., 0.))
+
     return f_cumulative
 
 
-# ### Functions required for probability integral transform
+#### Functions required for probability integral transform
 def probability_integral_transform(events, f_cumulative, roi):
-    '''Performs probability integral transform.
+    """Performs probability integral transform.
     See https://en.wikipedia.org/wiki/Probability_integral_transform
     
     Arguments:
-    events (np.array): array of observed events
+    events (np.ndarray): array of observed events
     f_cumulative (scipy.interpolate.interpolate.interp1d): interpolated cumulative function of signal spectrum
-    roi (np.array, tuple): 2-element array or tuple indicating start and end point of region of interest.
-                           Same units as `energies`.
+    roi (np.ndarray, list, tuple): 2-element array or tuple indicating start and end point of region of interest.
+                                   Same units as `energies`.
     
     Returns:
-    test4 (np.array): array of observed events after probability integral transformation assuming that observed
+    test4 (np.ndarray): array of observed events after probability integral transformation assuming that observed
                       events were drawn from the signal distribution under test
-    '''
+    """
     # Checking ROI definition makes sense
     assert roi[0] < roi[1], 'Dead: Start of ROI must be strictly smaller than end of ROI.'
     
@@ -83,27 +85,27 @@ def probability_integral_transform(events, f_cumulative, roi):
     test4 = np.unique(test4)
     
     # might have to kill this check later got pmax with negative numbers
-    assert (min(test4)>=0) & (max(test4)<=1),    'Dead: Smt wrong with probability integral transform'
-    
+    assert (min(test4)>=0) & (max(test4)<=1), 'Dead: Smt wrong with probability integral transform'
+
     return test4
 
 
-# ### Functions required for computing pmax test statistic itself
+#### Functions required for computing pmax test statistic itself
 def compute_interval_length(elements, k):
     """
     Finds all intervals containing k events event the set of events including boundaries,
     and computes the normalised length of each interval.
     
     Arguments:
-    elements (np.array): array of events after probability integral transformation.
+    elements (np.ndarray): array of events after probability integral transformation.
                          must include boundaries of region of interest, 0 and 1.
     k (integer): number of events each interval contains.
     
     Returns:
-    (np.array): array of each interval that contains k events.
+    (np.ndarray): array of each interval that contains k events.
     """
-    
-    window_size = k+2 # interval containing k events has length k+2
+    # interval containing k events has length k+2
+    window_size = k+2
     
     elements = np.unique(elements)
     assert len(elements) >= window_size,    f"window size of {window_size} larger than array of length {len(elements)}"
@@ -123,8 +125,8 @@ def ts(mu, n):
     the pmax test statistic is the maximum of this ts over a set of intervals under test
     
     Arguments:
-    mu (np.array): signal expectation of intervals under test
-    n (int): number of observed events of interval under test
+    mu (np.ndarray): signal expectation of intervals under test
+    n (integer): number of observed events of interval under test
     
     Returns:
     (float): test statistic in intervals under test
@@ -138,14 +140,13 @@ def pmax(events, mu):
     in the entire region of interest.
     
     Arguments:
-    events (np.array): 1d array of events after probability integral transformation.
+    events (np.ndarray): 1d array of events after probability integral transformation.
             array has to include edges of region of interest, 0 and 1.
-    mu (float64): signal expectation in entire region of interest
+    mu (float): signal expectation in entire region of interest
     
     Returns:
-    p_bag[ind] (float64): pmax test statistic in optimal interval
+    p_bag[ind] (float): pmax test statistic in optimal interval
     ind (integer): number of events the optimal interval contains
-    
     """
     # events only contains ROI boundaries
     if len(events)==2:
@@ -166,7 +167,7 @@ def pmax(events, mu):
         return p_bag[ind], ind
 
 
-# ### Functions required for computing precentile given pmax test statistic and overall mu in ROI
+#### Functions required for computing precentile given pmax test statistic and overall mu in ROI
 def nearest_mu(test_mu, mu_bag, is_verbose=False):
     """
     Finds the indices of the elements inside mu_bag that flank test_mu.    
@@ -174,13 +175,13 @@ def nearest_mu(test_mu, mu_bag, is_verbose=False):
     
     Arguments:
     test_mu (float): signal expectation of the interval under test
-    mu_bag (np.array): array of mu's for which the pmax ts distribution is available
+    mu_bag (np.ndarray): array of mu's for which the pmax ts distribution is available
     
     Returns:
     sel_ind (list): indices of mu_bag such that mu_bag[sel_ind[0]] <= test_mu <= mu_bag[sel_ind[1]]
     """
-    
-    aa = np.argmax(mu_bag>test_mu) # first element in mu_bag greater than test_mu
+    # first element in mu_bag greater than test_mu
+    aa = np.argmax(mu_bag>test_mu)
     sel_ind = [aa-1, aa]
     
     sel_mu = mu_bag[sel_ind]
@@ -199,16 +200,15 @@ def compute_percentile(test_pmax, test_mu, mu_bag, pmax_distribution):
     the null hypothesis if this test_pmax percentile is > 90.
     
     Arguments:
-    test_pmax (float64): pmax test statistic of interval under test
-    test_mu (float64): signal expectation in interval under test
-    mu_bag (np.array): array of mu's for which the pmax ts distribution is available
+    test_pmax (float): pmax test statistic of interval under test
+    test_mu (float): signal expectation in interval under test
+    mu_bag (np.ndarray): array of mu's for which the pmax ts distribution is available
     pmax_distribution (list): list of arrays containing the toy pmax test stastic at 
                               a particular signal expectation
                               
     Returns:
     percentile (float): Percentile of the pmax test statistic.
     """
-    
     # grab the nearest 2 mu's
     if (test_mu > min(mu_bag)) & (test_mu < max(mu_bag)):
         sel_ind = nearest_mu(test_mu, mu_bag)
@@ -224,7 +224,7 @@ def compute_percentile(test_pmax, test_mu, mu_bag, pmax_distribution):
 
     if len(sel_ind)>1:
         f_percentile = spi.interp1d(mu_bag[sel_ind], pmax_percentile_bag, kind='linear',
-                               bounds_error=None, fill_value=np.nan) # strictly for mu within range
+                                    bounds_error=None, fill_value=np.nan) # strictly for mu within range
         percentile = f_percentile(test_mu)
     else:
         percentile = pmax_percentile_bag[0]
