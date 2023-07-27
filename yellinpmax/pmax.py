@@ -1,11 +1,14 @@
+import gzip
+import pickle
+import importlib.util
+from pathlib import Path
+
 import numpy as np
 import scipy.stats as sps
 import scipy.interpolate as spi
-import pandas as pd 
-import pickle
 
 
-#### Functions to handle input spectrum
+#### Functions for handling input spectrum
 def get_cumulative(energies, rates, roi, num_cumulative_steps=1000):
     """Returns unnormalised cumulative function, f_cdf, such that 
     f_cdf(b)-f_cdf(a) gives the integral of `energies` between [a,b].
@@ -92,8 +95,7 @@ def probability_integral_transform(events, f_cumulative, roi):
 
 #### Functions required for computing pmax test statistic itself
 def compute_interval_length(elements, k):
-    """
-    Finds all intervals containing k events event the set of events including boundaries,
+    """Finds all intervals containing k events event the set of events including boundaries,
     and computes the normalised length of each interval.
     
     Arguments:
@@ -120,8 +122,7 @@ def compute_interval_length(elements, k):
 
 
 def ts(mu, n):
-    """
-    Computes the Poisson p-value of observing n events in intervals under test
+    """Computes the Poisson p-value of observing n events in intervals under test
     the pmax test statistic is the maximum of this ts over a set of intervals under test
     
     Arguments:
@@ -135,8 +136,7 @@ def ts(mu, n):
 
 
 def pmax(events, mu):
-    """
-    Computes the pmax test statistic given a set of events and signal expectation
+    """Computes the pmax test statistic given a set of events and signal expectation
     in the entire region of interest.
     
     Arguments:
@@ -168,18 +168,20 @@ def pmax(events, mu):
 
 
 #### Functions required for computing precentile given pmax test statistic and overall mu in ROI
-def nearest_mu(test_mu, mu_bag, is_verbose=False):
-    """
-    Finds the indices of the elements inside mu_bag that flank test_mu.    
+def nearest_mu(test_mu, pmax_null_ts, is_verbose=False):
+    """Finds the indices of the elements inside mu_bag that flank test_mu.    
     This function assumes test_mu is definitely in between two points in mu_bag
     
     Arguments:
     test_mu (float): signal expectation of the interval under test
-    mu_bag (np.ndarray): array of mu's for which the pmax ts distribution is available
+    pmax_null_ts (dictionary): dictionary containing pmax ts null distribution
+                               and the various mu's
     
     Returns:
     sel_ind (list): indices of mu_bag such that mu_bag[sel_ind[0]] <= test_mu <= mu_bag[sel_ind[1]]
     """
+    mu_bag = pmax_null_ts['mu_bag']
+
     # first element in mu_bag greater than test_mu
     aa = np.argmax(mu_bag>test_mu)
     sel_ind = [aa-1, aa]
@@ -193,22 +195,23 @@ def nearest_mu(test_mu, mu_bag, is_verbose=False):
     return sel_ind
 
 
-def compute_percentile(test_pmax, test_mu, mu_bag, pmax_distribution):
-    """
-    Computes the percentile of test_pmax. 0<= percentile <= 100.
+def compute_percentile(test_pmax, test_mu, pmax_null_ts):
+    """Computes the percentile of test_pmax. 0<= percentile <= 100.
     eg: when performing a hypothesis test at 90% confidence level, you can reject 
     the null hypothesis if this test_pmax percentile is > 90.
     
     Arguments:
     test_pmax (float): pmax test statistic of interval under test
     test_mu (float): signal expectation in interval under test
-    mu_bag (np.ndarray): array of mu's for which the pmax ts distribution is available
-    pmax_distribution (list): list of arrays containing the toy pmax test stastic at 
-                              a particular signal expectation
+    pmax_null_ts (dictionary): dictionary containing pmax ts null distribution
+                               and the various mu's it was defined for
                               
     Returns:
     percentile (float): Percentile of the pmax test statistic.
     """
+    mu_bag = pmax_null_ts['mu_bag']
+    pmax_distribution = pmax_null_ts['pmax_distributions']
+
     # grab the nearest 2 mu's
     if (test_mu > min(mu_bag)) & (test_mu < max(mu_bag)):
         sel_ind = nearest_mu(test_mu, mu_bag)
@@ -230,3 +233,24 @@ def compute_percentile(test_pmax, test_mu, mu_bag, pmax_distribution):
         percentile = pmax_percentile_bag[0]
     
     return percentile
+
+
+#### Functions for loading default pmax ts distributions
+def default_pmax_distributions():
+    """Loads
+    """
+    print('hihihere')
+
+    # Path to file with a dictionary of ___ (mu from [2.5, 70.], 1e4 toy pmax ts
+    # each.
+    spec = importlib.util.find_spec('yellinpmax')
+    pmax_ts_file = Path(spec.origin).parents[1] / 'data' / 'pmax_distributions_v1.pickle.gz'
+
+    assert pmax_ts_file.exists(), \
+           'Dead: Unable to find default pmax distribution pickle,\
+           pmax_distributions_v1_pickle.gz'
+
+    with gzip.open(pmax_ts_file) as fid:
+        pmax_ts = pickle.load(fid)
+
+    return pmax_ts
