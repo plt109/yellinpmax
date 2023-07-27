@@ -168,20 +168,19 @@ def pmax(events, mu):
 
 
 #### Functions required for computing precentile given pmax test statistic and overall mu in ROI
-def nearest_mu(test_mu, pmax_null_ts, is_verbose=False):
+def nearest_mu(test_mu, mu_bag, is_verbose=False):
     """Finds the indices of the elements inside mu_bag that flank test_mu.    
     This function assumes test_mu is definitely in between two points in mu_bag
     
     Arguments:
     test_mu (float): signal expectation of the interval under test
+    mu_bag (np.ndarray): array of mu's for which the pmax ts distribution is available
     pmax_null_ts (dictionary): dictionary containing pmax ts null distribution
                                and the various mu's
     
     Returns:
     sel_ind (list): indices of mu_bag such that mu_bag[sel_ind[0]] <= test_mu <= mu_bag[sel_ind[1]]
     """
-    mu_bag = pmax_null_ts['mu_bag']
-
     # first element in mu_bag greater than test_mu
     aa = np.argmax(mu_bag>test_mu)
     sel_ind = [aa-1, aa]
@@ -210,7 +209,7 @@ def compute_percentile(test_pmax, test_mu, pmax_null_ts):
     percentile (float): Percentile of the pmax test statistic.
     """
     mu_bag = pmax_null_ts['mu_bag']
-    pmax_distribution = pmax_null_ts['pmax_distributions']
+    pmax_distributions = pmax_null_ts['pmax_distributions']
 
     # grab the nearest 2 mu's
     if (test_mu > min(mu_bag)) & (test_mu < max(mu_bag)):
