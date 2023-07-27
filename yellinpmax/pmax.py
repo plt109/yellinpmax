@@ -237,11 +237,14 @@ def compute_percentile(test_pmax, test_mu, pmax_null_ts):
 
 #### Functions for loading default pmax ts distributions
 def default_pmax_distributions():
-    """Loads
-    """
-    print('hihihere')
+    """Loads the default dictionary containing the pmax ts null distribution.
+    The dictionary contains 3 keys, 'readme', 'mu_bag', 'pmax_distributions'.
 
-    # Path to file with a dictionary of ___ (mu from [2.5, 70.], 1e4 toy pmax ts
+    Returns:
+    pmax_ts (dictionary): Dictionary containing the pmax ts null distribution
+                          and the various mu's it was toyed out for
+    """
+    # Path to file with a dictionary of pmax null ts toys (mu from [2.5, 70.], 1e4 toy pmax ts
     # each.
     spec = importlib.util.find_spec('yellinpmax')
     pmax_ts_file = Path(spec.origin).parents[1] / 'data' / 'pmax_distributions_v1.pickle.gz'
