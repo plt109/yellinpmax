@@ -250,8 +250,7 @@ def default_pmax_distributions():
     pmax_ts_file = Path(spec.origin).parents[1] / 'data' / 'pmax_distributions_v1.pickle.gz'
 
     assert pmax_ts_file.exists(), \
-           'Dead: Unable to find default pmax distribution pickle,\
-           pmax_distributions_v1_pickle.gz'
+           'Dead: Unable to find default pmax distribution pickle, pmax_distributions_v1_pickle.gz'
 
     with gzip.open(pmax_ts_file) as fid:
         pmax_ts = pickle.load(fid)
