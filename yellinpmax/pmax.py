@@ -90,7 +90,7 @@ def probability_integral_transform(events, f_cumulative, roi):
     # Yellin pmax insensitive to the 'multiplicity' of events
     test4 = np.unique(test4)
     
-    # might have to kill this check later got pmax with negative numbers
+    # random variable is always positive after PIT
     assert (min(test4)>=0) & (max(test4)<=1), 'Dead: Smt wrong with probability integral transform'
 
     return test4
