@@ -84,13 +84,10 @@ def probability_integral_transform(events, f_cumulative, roi):
     # need this step cause f_cumulative isn't exactly cdf. not normalised
     test3 = (test2-f_cumulative(roi[0]))/mu
 
-    # Add in ROI boundaries
-    test4 = np.sort(np.concatenate([test3, [0., 1.]]))
-    
     # random variable is always positive after PIT
-    assert (min(test4)>=0) & (max(test4)<=1), 'Dead: Smt wrong with probability integral transform'
+    assert (min(test3)>=0) & (max(test3)<=1), 'Dead: Smt wrong with probability integral transform'
 
-    return test4
+    return test3
 
 
 #### Functions required for computing pmax test statistic itself
@@ -99,7 +96,7 @@ def compute_interval_length(elements, k):
     and computes the normalised length of each interval.
     
     Arguments:
-    elements (np.ndarray): array of events after probability integral transformation.
+    elements (np.ndarray): array of sorted events after probability integral transformation.
                          must include boundaries of region of interest, 0 and 1.
     k (integer): number of events each interval contains.
     
@@ -108,8 +105,13 @@ def compute_interval_length(elements, k):
     """
     # interval containing k events has length k+2
     window_size = k+2
-    
+
+    # Just sorting and adding ROI boundaries just in case
+    elements = np.sort(np.concatenate([elements, [0., 1.]]))
+
+    # To save time
     elements = np.unique(elements)
+
     assert len(elements) >= window_size,    f"window size of {window_size} larger than array of length {len(elements)}"
     
     interval_length = []
