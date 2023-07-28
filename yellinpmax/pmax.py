@@ -87,9 +87,6 @@ def probability_integral_transform(events, f_cumulative, roi):
     # Add in ROI boundaries
     test4 = np.sort(np.concatenate([test3, [0., 1.]]))
     
-    # Yellin pmax insensitive to the 'multiplicity' of events
-    test4 = np.unique(test4)
-    
     # random variable is always positive after PIT
     assert (min(test4)>=0) & (max(test4)<=1), 'Dead: Smt wrong with probability integral transform'
 
