@@ -71,6 +71,9 @@ def probability_integral_transform(events, f_cumulative, roi):
     """
     # Checking ROI definition makes sense
     assert roi[0] < roi[1], 'Dead: Start of ROI must be strictly smaller than end of ROI.'
+
+    # Checking that events are indeed within ROI
+    assert np.sum((events<roi[0])|(events>roi[1]))==0, 'Dead: Why are there events outside ROI?'
     
     # Total number of events expected in roi
     mu = f_cumulative(roi[1])-f_cumulative(roi[0])
