@@ -106,13 +106,10 @@ def compute_interval_length(elements, k):
     # interval containing k events has length k+2
     window_size = k+2
 
-    # Just sorting and adding ROI boundaries just in case
-    elements = np.sort(np.concatenate([elements, [0., 1.]]))
+    # np.unique returns sorted array, adding ROI boundaries just in case
+    elements = np.unique(np.concatenate([elements, [0., 1.]]))
 
-    # To save time
-    elements = np.unique(elements)
-
-    assert len(elements) >= window_size,    f"window size of {window_size} larger than array of length {len(elements)}"
+    assert len(elements) >= window_size, f"window size of {window_size} larger than array of length {len(elements)}"
     
     interval_length = []
     for i in range(len(elements) - window_size + 1):
