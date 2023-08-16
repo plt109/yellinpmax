@@ -69,6 +69,10 @@ def probability_integral_transform(events, f_cumulative, roi):
     test4 (np.ndarray): array of observed events after probability integral transformation assuming that observed
                       events were drawn from the signal distribution under test
     """
+    # No events to PIT anyway
+    if len(events)==0:
+        return events
+
     # Checking ROI definition makes sense
     assert roi[0] < roi[1], 'Dead: Start of ROI must be strictly smaller than end of ROI.'
 
