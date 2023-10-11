@@ -51,3 +51,44 @@ def concatenated_pmax(sub_elements, mus):
     ind_max = np.nanargmax(p_bag) # find interval with pmax
     
     return p_bag[ind_max], k_bag[ind_max]
+
+def concatenated_pit(events, f_cumulative, rois):
+    """
+    Performs probability integral transform for independent
+    blah blah
+    
+    Arguments:
+    events (list): List of dsfsadf
+    f_cumulative (scipy.interpolate.interpolate.interp1d): interpolated cumulative function of signal spectrum
+    rois (np.ndarray, list, tuple): asdfsadfdsf
+    
+    Returns:
+    events_cat (list): List or arrays of PIT-ed observed events asldfjsadlfkjds
+    
+    """
+    # No events to PIT anyway
+    if len(events)==0:
+        return events
+
+    # Checking ROI definition makes sense
+    for ii, roi in enumerate(rois):
+        assert roi[0] < roi[1], f'Dataset {ii:d} dead: Start of ROI must be strictly smaller than end of ROI.'
+
+    # Checking that events are indeed within ROI
+    assert np.sum((events<roi[0])|(events>roi[1]))==0, 'Dead: Why are there events outside ROI?'
+    
+    # Total number of events expected in roi
+    mu = f_cumulative(roi[1])-f_cumulative(roi[0])
+    assert mu>0, 'Dead: Signal expectation in region of interest must be positive.'
+    
+    # Transformation itself
+    test2 = f_cumulative(events) 
+    # need this step cause f_cumulative isn't exactly cdf. not normalised
+    test3 = (test2-f_cumulative(roi[0]))/mu
+
+    # random variable is always positive after PIT
+    assert (min(test3)>=0) & (max(test3)<=1), 'Dead: Smt wrong with probability integral transform'
+
+    return test3
+
+
