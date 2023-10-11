@@ -5,7 +5,7 @@ import pickle
 
 from .pmax import * # not nice, change this later
 
-def compute_concatenated_pmax(sub_elements, mus):
+def concatenated_pmax(sub_elements, mus):
     '''
     Function that determines all intervals given the concatenated dataset 
     without mixing the events from different datasets, computes pmax ts 
