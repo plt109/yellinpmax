@@ -3,16 +3,33 @@ import scipy.stats as sps
 from copy import deepcopy
 import pickle
 
-from pmax import * # not nice, change this later
+from .pmax import * # not nice, change this later
 
-def cal_split_pmax(sub_elements, mus):
+def compute_concatenated_pmax(sub_elements, mus):
     '''
     Function that determines all intervals given the concatenated dataset 
-    and computes pmax ts on each interval
+    without mixing the events from different datasets, computes pmax ts 
+    on each interval and returns largest pmax ts out of all the intervals 
+    considered from all datasets.
+
+    Arguments:
+    sub_elements (list): List of arrays of probability integral transformed 
+                         events in each dataset, including ROI boundaries 
+                         of each dataset.
+                         E.g.: [array([0., 0.02, 0.15 ,0.25]),
+                         array(0.25, 0.49, 1.)]
+    mus (np.array): Array of total signal expectations in units of [events] 
+                    in each dataset.
+                    E.g.: array([ 43., 129.])
+
+    Keyword arguments: None, for now
     
     Returns:
-    p_bag[ind_max] :
-    k_bag[ind_max] :
+    p_bag[ind_max] (np.float64): pmax ts value out of all intervals considered
+                                 from all datasets but without mixing events 
+                                 from different datasets.
+    k_bag[ind_max] (int): Number of events contained by the final interval that 
+                          gave the final pmax ts value.
     '''
     ### intervals time
     p_bag = []
