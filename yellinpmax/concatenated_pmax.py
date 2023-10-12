@@ -52,43 +52,41 @@ def concatenated_pmax(sub_elements, mus):
     
     return p_bag[ind_max], k_bag[ind_max]
 
-def concatenated_pit(events, f_cumulative, rois):
+def concatenated_pit(events_arr, f_cumulative_cat, roi_arr):
     """
     Performs probability integral transform for independent
     blah blah
     
     Arguments:
-    events (list): List of dsfsadf
-    f_cumulative (scipy.interpolate.interpolate.interp1d): interpolated cumulative function of signal spectrum
-    rois (np.ndarray, list, tuple): asdfsadfdsf
+    events_arr (list): List of datasets of events.
+                       E.g.: [adsfsadfdsf]
+    f_cumulative_cat (scipy.interpolate.interp1d): interpolated cumulative function of signal spectrum
+    roi_arr (np.ndarray, list, tuple): List of ROIs.
+                                       E.g.: ((1., 140.), (150., 300.)).
     
     Returns:
-    events_cat (list): List or arrays of PIT-ed observed events asldfjsadlfkjds
+    pitted_events (list): List or arrays of PIT-ed observed events asldfjsadlfkjds
+    mu_arr (list): List of mus in each of the ROIs
     
     """
-    # No events to PIT anyway
-    if len(events)==0:
-        return events
+    # Full ROI
+    starts = [aa[0] for aa in roi_arr]
+    ends = [aa[1] for aa in roi_arr]
+    roi_cat = (min(starts), max(ends))
 
-    # Checking ROI definition makes sense
-    for ii, roi in enumerate(rois):
-        assert roi[0] < roi[1], f'Dataset {ii:d} dead: Start of ROI must be strictly smaller than end of ROI.'
+    # PIT-ing and concatenating individual datasets
+    mu_arr = []
+    pitted_events = []
+    for this_dataset, this_roi in zip(events_arr, roi_arr):
+        this_pitted = probability_integral_transform(this_dataset,
+                f_cumulative_cat, roi_cat)
+        pitted_events.append(this_pitted)
 
-    # Checking that events are indeed within ROI
-    assert np.sum((events<roi[0])|(events>roi[1]))==0, 'Dead: Why are there events outside ROI?'
-    
-    # Total number of events expected in roi
-    mu = f_cumulative(roi[1])-f_cumulative(roi[0])
-    assert mu>0, 'Dead: Signal expectation in region of interest must be positive.'
-    
-    # Transformation itself
-    test2 = f_cumulative(events) 
-    # need this step cause f_cumulative isn't exactly cdf. not normalised
-    test3 = (test2-f_cumulative(roi[0]))/mu
+        this_mu = f_cumulative_cat(this_roi[1])-f_cumulative_cat(this_roi[0])
+        mu_arr.append(this_mu)
 
-    # random variable is always positive after PIT
-    assert (min(test3)>=0) & (max(test3)<=1), 'Dead: Smt wrong with probability integral transform'
+    # To-do: Check that events stay within their partition after PIT
 
-    return test3
+    return pitted_events, mu_arr
 
 
