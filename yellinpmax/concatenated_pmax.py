@@ -90,3 +90,47 @@ def concatenated_pit(events_arr, f_cumulative_cat, roi_arr):
     return pitted_events, mu_arr
 
 
+def concatenate_spectra(support1, rates1, roi1,
+                        support2, rates2, roi2):
+    """ Function that concatenates 2 spectra (event/observable as function of observable), 
+    while padding the in between regions properly with zeros.
+    
+    Probably can generalise it to beyond 2 datasets but meh.
+    
+    Arguments:
+    support1 (pd.series, np.array, tuple): Observeable at which the rates are defined
+    rates1 (pd.series, np.array, tuple): Event rates [event/observable] with exposure multiplied in
+    roi1 (np.array, tuple): ROI for first dataset. E.g.: (1., 140.), (150., 3000.)
+    
+    And the same for support2, rates2, roi2
+    
+    Returns:
+    support_cat (np.array): Observable at which the concatenated rates are defined
+    rates_cat (np.array): Event rates [event/observable]. 
+    roi_cat (np.array): Concatenated ROI. E.g: (1., 3000.)
+    
+    Pueh Leng Tan, 13 Oct 2023
+    """
+    
+    # Only grabbing bits of spectrum within roi
+    mask = (support1>=roi1[0]) & (support1<=roi1[1])
+    support1 = support1[mask]
+    rates1 = rates1[mask]
+
+    mask = (support2>=roi2[0]) & (support2<=roi2[1])
+    support2 = support2[mask]
+    rates2 = rates2[mask]
+
+    # sibei important to null out the bits with totally no events
+    num_padder = 3
+    zero_start = min(max(support1), max(lower_roi)) # defo correct, think about it
+    zero_end = max(min(support2), min(s2_roi)) # defo correct, think about it
+    support_padder = np.linspace(zero_start, zero_end, num_padder, endpoint=True) # being explicit about end point
+    rates_padder = np.zeros_like(support_padder)
+
+    # Concatenating support, rates and ROI
+    support_cat = np.concatenate([support1, support_padder, support2])
+    rates_cat = np.concatenate([rates1, rates_padder, rates2])
+    roi_cat = np.array([min(roi1), max(roi2)])
+    
+    return support_cat, rates_cat, roi_cat
