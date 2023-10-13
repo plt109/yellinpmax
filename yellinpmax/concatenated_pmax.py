@@ -70,9 +70,9 @@ def concatenated_pit(events_arr, f_cumulative_cat, roi_arr):
     
     """
     # Full ROI
-    starts = [aa[0] for aa in roi_arr]
-    ends = [aa[1] for aa in roi_arr]
-    roi_cat = (min(starts), max(ends))
+    starts = [np.min(aa) for aa in roi_arr]
+    ends = [np.max(aa) for aa in roi_arr]
+    roi_cat = (np.min(starts), np.max(ends))
 
     # PIT-ing and concatenating individual datasets
     mu_arr = []
@@ -82,7 +82,7 @@ def concatenated_pit(events_arr, f_cumulative_cat, roi_arr):
                 f_cumulative_cat, roi_cat)
         pitted_events.append(this_pitted)
 
-        this_mu = f_cumulative_cat(this_roi[1])-f_cumulative_cat(this_roi[0])
+        this_mu = f_cumulative_cat(np.max(this_roi))-f_cumulative_cat(np.min(this_roi))
         mu_arr.append(this_mu)
 
     # To-do: Check that events stay within their partition after PIT
@@ -91,7 +91,8 @@ def concatenated_pit(events_arr, f_cumulative_cat, roi_arr):
 
 
 def concatenate_spectra(support1, rates1, roi1,
-                        support2, rates2, roi2):
+                        support2, rates2, roi2,
+                        verbose=False):
     """ Function that concatenates 2 spectra (event/observable as function of observable), 
     while padding the in between regions properly with zeros.
     
@@ -125,13 +126,16 @@ def concatenate_spectra(support1, rates1, roi1,
     empty2 = (len(support2)==0)
 
     if empty1 & empty2:
-        print('WARNING: ')
+        if verbose:
+            print('WARNING: Both spectra out of ROIs')
         return [], [], []
     elif empty1:
-        print('Warning: Spectrum 1 out of ROI')
+        if verbose:
+            print('Warning: Spectrum 1 out of ROI')
         return support2, rates2, roi2
     elif empty2:
-        print('Warning: Spectrum 2 out of ROI')
+        if verbose:
+            print('Warning: Spectrum 2 out of ROI')
         return support1, rates1, roi1
 
     # sibei important to null out the bits with totally no events
