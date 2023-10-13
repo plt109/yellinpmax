@@ -121,6 +121,19 @@ def concatenate_spectra(support1, rates1, roi1,
     support2 = support2[mask]
     rates2 = rates2[mask]
 
+    empty1 = (len(support1)==0)
+    empty2 = (len(support2)==0)
+
+    if empty1 & empty2:
+        print('WARNING: ')
+        return [], [], []
+    elif empty1:
+        print('Warning: Spectrum 1 out of ROI')
+        return support2, rates2, roi2
+    elif empty2:
+        print('Warning: Spectrum 2 out of ROI')
+        return support1, rates1, roi1
+
     # sibei important to null out the bits with totally no events
     num_padder = 3
     zero_start = min(max(support1), max(roi1)) # defo correct, think about it
