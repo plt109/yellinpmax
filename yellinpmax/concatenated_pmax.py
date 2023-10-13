@@ -123,8 +123,8 @@ def concatenate_spectra(support1, rates1, roi1,
 
     # sibei important to null out the bits with totally no events
     num_padder = 3
-    zero_start = min(max(support1), max(lower_roi)) # defo correct, think about it
-    zero_end = max(min(support2), min(s2_roi)) # defo correct, think about it
+    zero_start = min(max(support1), max(roi1)) # defo correct, think about it
+    zero_end = max(min(support2), min(roi2)) # defo correct, think about it
     support_padder = np.linspace(zero_start, zero_end, num_padder, endpoint=True) # being explicit about end point
     rates_padder = np.zeros_like(support_padder)
 
