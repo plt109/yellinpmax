@@ -262,3 +262,28 @@ def default_pmax_distributions():
         pmax_ts = pickle.load(fid)
 
     return pmax_ts
+
+
+#### Function to toy out pmax ts distributions
+def get_pmax_distribution(poisson_mu, num_toys=int(1e4)):
+    """ Function to toyMC out the pmax ts distribution given a particular 
+    signal expectation in the analysis region of interest (ROI).
+
+    Arguments:
+    poisson_mu (float64): Signal expectation in analysis ROI
+    num_toys (int): Number of toyMCs. Default of 1e4 is abit of an overkill,
+                    but why not?
+
+    Returns:
+    pmax_bag (np.array): Array of pmax ts for signal expectation of `poisson_mu`
+    """
+    n_observed = sps.poisson.rvs(poisson_mu, size=num_toys)
+
+    pmax_bag = np.ones(num_toys)*-1.
+
+    for ind_toy, this_n in enumerate(n_observed):
+        events = np.sort(sps.uniform.rvs(size=this_n))
+        events = np.concatenate([[0.], events, [1.]]) # add in boundaries
+        pmax_bag[ind_toy] = pmax(events, poisson_mu)[0]
+
+    return pmax_bag
