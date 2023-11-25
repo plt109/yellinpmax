@@ -78,6 +78,7 @@ def compute_c0(f_cdf, input_events, s2_roi):
         # Find max gap
         x_max = np.max(x)
 
+        # Compute 1-pvalue of hypothesis
         c0 = compute_c0_inner(x_max, overall_mu)
     
     return c0, overall_mu
