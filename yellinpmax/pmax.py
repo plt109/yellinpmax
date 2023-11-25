@@ -253,10 +253,11 @@ def default_pmax_distributions():
     # Path to file with a dictionary of pmax null ts toys (mu from [2.5, 70.], 1e4 toy pmax ts
     # each.
     spec = importlib.util.find_spec('yellinpmax')
-    pmax_ts_file = Path(spec.origin).parents[1] / 'data' / 'pmax_distributions_v1.pickle.gz'
+    _ts_fname = 'pmax_distributions_v2.pickle.gz'
+    pmax_ts_file = Path(spec.origin).parents[1] / 'data' / _ts_fname
 
     assert pmax_ts_file.exists(), \
-           'Dead: Unable to find default pmax distribution pickle, pmax_distributions_v1_pickle.gz'
+           f'Dead: Unable to find default pmax distribution pickle, {_ts_fname}.'
 
     with gzip.open(pmax_ts_file) as fid:
         pmax_ts = pickle.load(fid)
