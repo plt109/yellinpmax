@@ -157,7 +157,7 @@ def pmax(events, mu):
 
     # events only contains ROI boundaries
     if len(events)==2:
-        return ts(mu, 0)
+        return ts(mu, 0), 0
     else:
         p_bag = []
         # Intervals containing 0..all events
