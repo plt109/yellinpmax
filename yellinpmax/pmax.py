@@ -151,6 +151,9 @@ def pmax(events, mu):
     p_bag[ind] (float): pmax test statistic in optimal interval
     ind (integer): number of events the optimal interval contains
     """
+    # Add in ROI boundaries just in case
+    events = np.append(events, [0., 1.])
+
     # Yellin insensitive to 'multiplicity' of events. Do this to save some
     # computational time.
     events = np.unique(events)
