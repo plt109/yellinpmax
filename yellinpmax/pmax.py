@@ -177,6 +177,59 @@ def pmax(events, mu):
         return p_bag[ind], ind
 
 
+def fish_pmax_interval(events, k, mu, test_pmax):
+    """
+    Function to fish out the optimal interval for pmax given the number of 
+    events the optimal interval contains.
+    
+    Intended usage is that one computes the pmax test statistic and number 
+    of events the optimal interval contains using 
+    
+    `test_pmax, k = yellinpmax.pmax(events, mu)`,
+    
+    and then fish out the events (or rather the index of the first event) 
+    that gave the final optimal interval using this function
+    
+    `ind = yellinpmax.fish_pmax_interval(events, k, mu, test_pmax)`.
+    
+    Arguments:
+    events (np.array): Array of events after probability integral transform
+                       including ROI boundaries
+    k (np.int64): Number of events optimal pmax interval contains
+    mu (np.float64): Total signal expectation within ROI at xsec under test
+    test_pmax (np.float64): Pmax test statisc for checksum later
+    
+    Returns:
+    ind (np.int64): Index of the first event that gave the final optimal 
+                    interval. This is the index of the probability integral 
+                    transformed and sorted array of events including ROI 
+                    boundaries. To recover the actual un-transformed events, 
+                    do something like 
+                    
+                    s2_data_w_edges = np.unique(np.append(s2_data, s2_roi))
+                    start_event = s2_data_w_edges[ind]
+                    end_event = s2_data_w_edges[ind+1+k]
+    """
+    # Add in ROI boundaries just in case
+    events = np.append(events, [0., 1.])
+
+    # Yellin insensitive to 'multiplicity' of events. Do this to save some
+    # computational time.
+    events = np.unique(events)
+
+    # Length of interval containing k events
+    aa = yp.compute_interval_length(events, k)
+
+    # Length of interval then becomes the poisson mu
+    p_bag = yp.ts(aa*mu, k) # max p_n for n=k
+    ind = np.nanargmax(p_bag)
+
+    assert p_bag[ind]==test_pmax, 'har how come different pmax?'
+
+    # index of event/boundary on the left that gave the final chosen interval
+    return ind
+
+    
 #### Functions required for computing precentile given pmax test statistic and overall mu in ROI
 def nearest_mu(test_mu, mu_bag, is_verbose=False):
     """Finds the indices of the elements inside mu_bag that flank test_mu.    
@@ -242,6 +295,8 @@ def compute_percentile(test_pmax, test_mu, pmax_null_ts):
         percentile = pmax_percentile_bag[0]
     
     return percentile
+
+
 
 
 #### Functions for loading default pmax ts distributions
