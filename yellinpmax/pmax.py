@@ -218,10 +218,10 @@ def fish_pmax_interval(events, k, mu, test_pmax):
     events = np.unique(events)
 
     # Length of interval containing k events
-    aa = yp.compute_interval_length(events, k)
+    aa = compute_interval_length(events, k)
 
     # Length of interval then becomes the poisson mu
-    p_bag = yp.ts(aa*mu, k) # max p_n for n=k
+    p_bag = ts(aa*mu, k) # max p_n for n=k
     ind = np.nanargmax(p_bag)
 
     assert p_bag[ind]==test_pmax, 'har how come different pmax?'
